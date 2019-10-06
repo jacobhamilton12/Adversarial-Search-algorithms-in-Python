@@ -67,19 +67,16 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
+        prevGameState = currentGameState
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood().asList()
+        newFood = currentGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-        print "Successor states " , successorGameState , "\n\nNEWPOS ", newPos , "\n\nnewfood" , newFood , "\n\nnewghoststates",  newGhostStates , "\n\nnewscaredtimes ", newScaredTimes
-        print "Ghoststs"
-        for something in newGhostStates:
-          print something, "--"
-          print type(something)
-          print something.getPosition()
+
         "*** YOUR CODE HERE ***"
         minVal = 10000
+        oldPos = currentGameState.getPacmanPosition()
         for coord in newFood:
           if minVal > abs(newPos[0] - coord[0]) + abs(newPos[1] - coord[1]):
             minVal = abs(newPos[0] - coord[0]) + abs(newPos[1] - coord[1])
@@ -87,11 +84,14 @@ class ReflexAgent(Agent):
         for state in newGhostStates:
           if minEnemy > abs(newPos[0] - state.getPosition()[0]) + abs(newPos[1] - state.getPosition()[1]):
             minEnemy = abs(newPos[0] - state.getPosition()[0]) + abs(newPos[1] - state.getPosition()[1])
+        if minEnemy < 2:
+          minVal = 999999999
+        if successorGameState.getPacmanPosition()  == prevGameState.getPacmanPosition():
+          minVal += 9999999
+        minEnemy *= .5
         if minVal == 10000:
-          minVal = 0
-
-        minVal *= .5
-        return successorGameState.getScore() - minVal + minEnemy
+          return 9999999999
+        return successorGameState.getScore() - minVal  + 1
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -146,7 +146,40 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
+        def getmax(state, depth, agentIndex):
+          actions = state.getLegalActions(0)
+          if not actions or depth ==0 or state.isWin():
+            return self.evaluationFunction(state), Directions.STOP
+          maxVal = float('-inf')
+          bestAction = Directions.STOP
+          for action in actions:
+            successor = state.generateSuccessor(0,action)
+            temp = getmin(successor, depth, 1)
+            if temp > maxVal:
+              maxVal = temp
+              bestAction = action
+          return (maxVal, bestAction)
+
+        def getmin(state, depth, agentIndex):
+          actions = state.getLegalActions(agentIndex)
+          if not actions or depth ==0 or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+          minVal = float('inf')
+          if agentIndex == state.getNumAgents() -1:
+            for action in actions:
+              successor = state.generateSuccessor(agentIndex,action)
+              minVal = min(minVal, getmax(successor, depth -1, 0)[0])
+          else:
+            for action in actions:
+              successor = state.generateSuccessor(agentIndex,action)
+              minVal = min(minVal, getmin(successor, depth, agentIndex +1))
+          return minVal
+
+
+        return getmax(gameState, self.depth, 0)[1]
+
+        
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
