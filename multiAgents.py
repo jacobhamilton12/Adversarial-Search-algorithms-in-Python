@@ -69,12 +69,29 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-
+        print "Successor states " , successorGameState , "\n\nNEWPOS ", newPos , "\n\nnewfood" , newFood , "\n\nnewghoststates",  newGhostStates , "\n\nnewscaredtimes ", newScaredTimes
+        print "Ghoststs"
+        for something in newGhostStates:
+          print something, "--"
+          print type(something)
+          print something.getPosition()
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        minVal = 10000
+        for coord in newFood:
+          if minVal > abs(newPos[0] - coord[0]) + abs(newPos[1] - coord[1]):
+            minVal = abs(newPos[0] - coord[0]) + abs(newPos[1] - coord[1])
+        minEnemy = 10000
+        for state in newGhostStates:
+          if minEnemy > abs(newPos[0] - state.getPosition()[0]) + abs(newPos[1] - state.getPosition()[1]):
+            minEnemy = abs(newPos[0] - state.getPosition()[0]) + abs(newPos[1] - state.getPosition()[1])
+        if minVal == 10000:
+          minVal = 0
+
+        minVal *= .5
+        return successorGameState.getScore() - minVal + minEnemy
 
 def scoreEvaluationFunction(currentGameState):
     """
