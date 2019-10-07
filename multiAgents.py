@@ -77,16 +77,16 @@ class ReflexAgent(Agent):
         "*** YOUR CODE HERE ***"
         minVal = float('inf')
         oldPos = currentGameState.getPacmanPosition()
-        for coord in newFood:
+        for coord in newFood: #closest distance to food
           if minVal > util.manhattanDistance(newPos,coord):
             minVal = util.manhattanDistance(newPos,coord)
         minEnemy = float('inf')
-        for state in newGhostStates:
+        for state in newGhostStates: #closest distance to enemy
           if minEnemy > util.manhattanDistance(newPos,state.getPosition()):
             minEnemy = util.manhattanDistance(newPos,state.getPosition())
-        if minEnemy < 2:
+        if minEnemy < 2: #if enemy is close it turns away
           minVal = 99999999
-        if successorGameState.getPacmanPosition()  == prevGameState.getPacmanPosition():
+        if successorGameState.getPacmanPosition()  == prevGameState.getPacmanPosition(): #try to keep it from being still
           minVal += 9999999
         if minVal == float('inf'):
           return float('inf')
@@ -282,7 +282,10 @@ def betterEvaluationFunction(currentGameState):
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION: Gets total distance in an approximate order that it would grab the food in. 
+      Does the same with powerups. Returns a linear combination of powerups and food so as to not
+      value one way more than the other. If an enemy is close then minval will be 9999 so it will 
+      not go that direction.
     """
     "*** YOUR CODE HERE ***"
     pos = currentGameState.getPacmanPosition()
@@ -312,9 +315,9 @@ def betterEvaluationFunction(currentGameState):
     newPos = pos[:]
     tempPos = pos[:]
     totalPower = 0
-    while len(powerUps) > 0:
+    while len(powerUps) > 0:  #gets distances to powerups
       minPowerUp = float('inf')
-      for coord in currentGameState.getCapsules(): #gets distance to closest powerup
+      for coord in currentGameState.getCapsules():
         if minPowerUp > util.manhattanDistance(newPos,coord):
           minPowerUp = util.manhattanDistance(newPos,coord)
           tempPos = coord[:]
@@ -322,7 +325,7 @@ def betterEvaluationFunction(currentGameState):
       newPos = tempPos[:]
       totalPower += minPowerUp
 
-    if minEnemy < 2:
+    if minEnemy < 2: #if enemy is close it turns away
       minVal = 9999
     rand = random.randint(0,1)
     rand2 = random.randint(0,1)
