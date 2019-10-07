@@ -75,22 +75,21 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        minVal = 10000
+        minVal = float('inf')
         oldPos = currentGameState.getPacmanPosition()
         for coord in newFood:
-          if minVal > abs(newPos[0] - coord[0]) + abs(newPos[1] - coord[1]):
-            minVal = abs(newPos[0] - coord[0]) + abs(newPos[1] - coord[1])
-        minEnemy = 10000
+          if minVal > util.manhattanDistance(newPos,coord):
+            minVal = util.manhattanDistance(newPos,coord)
+        minEnemy = float('inf')
         for state in newGhostStates:
-          if minEnemy > abs(newPos[0] - state.getPosition()[0]) + abs(newPos[1] - state.getPosition()[1]):
-            minEnemy = abs(newPos[0] - state.getPosition()[0]) + abs(newPos[1] - state.getPosition()[1])
+          if minEnemy > util.manhattanDistance(newPos,state.getPosition()):
+            minEnemy = util.manhattanDistance(newPos,state.getPosition())
         if minEnemy < 2:
-          minVal = 999999999
+          minVal = 99999999
         if successorGameState.getPacmanPosition()  == prevGameState.getPacmanPosition():
           minVal += 9999999
-        minEnemy *= .5
-        if minVal == 10000:
-          return 9999999999
+        if minVal == float('inf'):
+          return float('inf')
         return successorGameState.getScore() - minVal  + 1
 
 def scoreEvaluationFunction(currentGameState):
@@ -286,7 +285,51 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pos = currentGameState.getPacmanPosition()
+    food = currentGameState.getFood().asList()
+    ghostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+    minEnemy = float('inf')
+    totalDist = 0
+    newPos = pos[:]
+    tempPos = pos[:]
+    foodList = food[:]
+    powerUps = currentGameState.getCapsules()
+    minVal = 0
+    while len(foodList) > 0: #gets total distance between pacman and getting every food item
+      minVal = float('inf')
+      for coord in foodList:
+        if minVal > util.manhattanDistance(newPos,coord):
+          minVal = util.manhattanDistance(newPos,coord)
+          tempPos = coord[:]
+      foodList.remove(tempPos)
+      newPos = tempPos[:]
+      totalDist += minVal
+
+    for state in ghostStates: #gets distance to closest ghost
+      if minEnemy > util.manhattanDistance(pos,state.getPosition()):
+        minEnemy = util.manhattanDistance(pos,state.getPosition())
+    newPos = pos[:]
+    tempPos = pos[:]
+    totalPower = 0
+    while len(powerUps) > 0:
+      minPowerUp = float('inf')
+      for coord in currentGameState.getCapsules(): #gets distance to closest powerup
+        if minPowerUp > util.manhattanDistance(newPos,coord):
+          minPowerUp = util.manhattanDistance(newPos,coord)
+          tempPos = coord[:]
+      powerUps.remove(tempPos)
+      newPos = tempPos[:]
+      totalPower += minPowerUp
+
+    if minEnemy < 2:
+      minVal = 9999
+    rand = random.randint(0,1)
+    rand2 = random.randint(0,1)
+    rand3 = random.randint(0,1)
+    rand = rand * rand2 * rand3
+    
+    return currentGameState.getScore() - totalDist - minVal + rand - totalPower * 5
 
 # Abbreviation
 better = betterEvaluationFunction
